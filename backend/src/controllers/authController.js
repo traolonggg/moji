@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { cookieParser } from "cookie-parser";
 import Session from "../models/Session.js";
 const ACCESS_TOKEN_TTL = "30m"; //thuong song trong 15m tro xuong
 const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000;
@@ -84,5 +85,22 @@ export const signIn = async (req, res) => {
   } catch (error) {
     console.error("loi khi goi signIn", error);
     return res.status(500).json({ message: "loi khi goi signIn" });
+  }
+};
+export const signOut = async (req, res) => {
+  try {
+    //lay Refresh token tu cookie
+    const token = req.cookies?.refreshToken;
+    if (token) {
+      await Session.deleteOne({ refreshToken: token });
+      //Xoa cookie
+      res.clearCookie("refresh-token");
+    }
+    return res.sendStatus(204);
+    //Xoa refresh token trong session
+    //Xoa refresh token trong cookie
+  } catch (error) {
+    console.log("Loi khi goi signOut", error);
+    return res.status(500).json({ message: "Loi he thong" });
   }
 };
